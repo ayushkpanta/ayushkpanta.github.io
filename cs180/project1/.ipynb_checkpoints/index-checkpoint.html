@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CS 180 Project 1</title>
+    <link rel="icon" href="other_imgs/emir.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1>CS 180: Images of the Russian Empire</h1>
+    <h2><em>Colorizing the <a href = "https://www.loc.gov/collections/prokudin-gorskii/">Prokudin-Gorskii</a> Photo Collection</em></h2>
+
+    <h3>Background</h3>
+    <p>
+        In this project we explore the work of <b>Sergei Mikhailovich Prokudin-Gorskii</b>, a visionary Russian photographer. In the early 20th century, Prokudin-Gorskii traveled across the Russian Empire, capturing its diverse scenes by exposing them in parallel on glass plates with red, green, and blue filters. He hoped to use these images in alongside special projectors to teach children across Russia, but his dream was cut short when he left the country in 1918 after the revolution.
+    </p>
+    <p>
+        However, we computer vision enthusiasts are lucky that Prokudin-Gorskii's glass slides have been preserved and digitized by the Library of Congress. Our task is to align the RGB slides and reconstruct the full color images, allowing us to glimpse into the final days of the Russian Empire.
+    </p>
+    <div class="img_container">
+        <div class="imgs">
+            <img src="other_imgs/self_portrait.jpg" width="10%"/>
+            <img src="gallery_imgs/self_portrait.jpg" width="30%"/>
+        </div>
+        <p class ='img_label'><em>Portrait of Prokudin-Gorskii on the Skuritskhali River</em></p>
+    </div>
+
+    <h3>General Methods</h3>
+    <p>
+        The basic technique I employed involved shifting the matrices for the R and G color channels with respect to the B channel matrix. For each matrix shift, I computed the <b> Normalized Cross Correlation (NCC)</b> between the shifted matrix and the B channel matrix, keeping track of the shift vectors that produce the maximum NCC. It is important to note that I computed the NCCs using only the middle slices of the matrices, which helped avoid noise from border artifacts and reduced the algorithm's runtime.
+    </p>
+    <p>
+        While this foundational technique worked well for small images, it failed to align larger images within a reasonable time frame. To address this, I utilized the <b>Gaussian Pyramid</b>. In this classical technique, we blur and downscale an image to create multiple resolutions. For this case, we create a separate pyramid for each image channel. We then run the aforementioned algorithm on the smallest images to obtain initial shift vectors, which account for the general patterns between matrices. As we move back up to larger levels of the pyramid, we search in a small area around a scaled version of the previous shift vectors to make more precise adjustments and capture finer details.
+    </p>
+    <p>
+        I will quickly outline the key parameters for this basic algorithm and their optimal values that I found through tuning: <b>1)</b> Minimum dimension for the image pyramid = 128. <b>2)</b> Number of middle pixels for NCC computation = 75. <b>3)</b> Initial shift window dimensions = [-15, 15]. <b>4)</b> Leniency (determines the search area around an informed shift) = 1. I found it particularly interesting that such a small leniency parameter was sufficient to align the images.
+    </p>
+
+    <div class="img_container">
+        <div class="imgs">
+            <img src="other_imgs/church_l4.jpg" width="30%"/>
+            <img src="other_imgs/church_l3.jpg" width="15%"/>
+            <img src="other_imgs/church_l2.jpg" width="10%"/>
+            <img src="other_imgs/church_l1.jpg" width="7.5%"/>
+            <img src="other_imgs/church_l0.jpg" width="3.75%"/>
+            <img src="other_imgs/church_l0.jpg" width="1.875%"/>
+            <img src="other_imgs/church_l0.jpg" width="0.9375%"/>
+        </div>
+        <p class ='img_label'><em>Visualization of an Image Pyramid for "church.tif"</em></p>
+    </div>
+
+    <h3>Bells and Whistles: The Canny Filter</h3>
+    <p>
+        Using RGB pixel values as a basis for comparison worked quite well for every image except for "emir.tif". This is due to a notable difference in brightness levels among the channels, which can be seen in the images below. More specifically, the R channel is much brighter than the others, causing the computation of NCC with raw pixel values to result in a misaligned image. I want to note that it is technically <em>still possible</em> to align this image using pixel values, as I was able to do so. However, this was done using a brute-force method that took a few minutes and did not truly leverage the power of the image pyramid.
+    </p>
+    <p>
+        Thus, I opted to apply an <b>Canny edge detector</b> to the individual color channels before creating the image pyramids. This converts the channel matrices into binary matrices that outline the most significant edges within an image. These edges are advantageous because they are less sensitive to (reasonable) differences in brightness between color channels. I implemented this using the skimage Canny filter function and found an optimal value for the parameter "sigma" to be 3.
+    </p>
+    
+
+
+        <div class="img_container">
+            <div class="imgs">
+                <img src="other_imgs/emir_r.jpg" width="20%"/>
+                <img src="other_imgs/emir_b.jpg" width="20%"/>
+                <img src="other_imgs/emir_bad.jpg" width="20%"/>
+            </div>
+            <p class ='img_label'><em>Standard R and B plates and Result</em></p>
+        </div>
+
+        <div class="img_container">
+            <div class="imgs">
+                <img src="other_imgs/emir_r_canny.jpg" width="20%"/>
+                <img src="other_imgs/emir_b_canny.jpg" width="20%"/>
+                <img src="gallery_imgs/emir.jpg" width="20%"/>
+            </div>
+            <p class ='img_label'><em>Canny filtered R and B plates and Result</em></p>
+        </div>
+    
+        <p>
+            However, that's not to say that using pixels for NCC has no advantages. In fact, it actually worked better than the Canny filter method for a number of images that I selected from the collection. I include some of these images below, but I do not provide comparison images, shift vectors, or alignment times as they are not relevant to my final image alignment process. In the case of the first and third images below, the Canny process resulted in a completely misaligned image. I suppose this may be because such images may have more weakly-defined edges or other unknown challenges within the color channels, which can weaken the efficacy of the Canny filter. I plan to explore this further in the future, perhaps using histogram equalization or other more complex features and metrics.
+
+            <div class="img_container">
+                <div class="imgs">
+                    <img src="other_imgs/shadow.jpg" width="22%"/>
+                    <img src="other_imgs/frescoes.jpg" width="22%"/>
+                    <img src="other_imgs/sunset.jpg" width="22%"/>
+                    <img src="other_imgs/owls.jpg" width="22%"/>
+                </div>
+                <p class ='img_label'><em>Images that Worked Better (or Only Worked) with Pixel Matching</em></p>
+            </div>
+
+    <h3>Gallery</h3>
+
+    <p>This gallery showcases the aligned images along with their optimal shift vectors and the time it took to align them. The shift vectors are in the form (y, x). Additional images selected from the collection are indicated with asterisks.</p>
+
+    <div class="gallery_grid">
+        <div class="gallery_item">
+            <img src="gallery_imgs/emir.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"emir"</b> ~ R: (104, 40), G: (47, 23) ~ aligned in 6.53s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/self_portrait.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"self_portrait"</b> ~ R: (174, 32), G: (76, 28) ~ aligned in 6.85s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/church.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"church"</b> ~ R: (53, -11), G: (23, -1) ~ aligned in 6.03s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/harvesters.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"harvesters"</b> ~ R: (120, 15), G: (56, 15) ~ aligned in 6.26s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/icon.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"icon"</b> ~ R: (87, 11), G: (39, 15) ~ aligned in 6.67s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/lady.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"lady"</b> ~ R: (105, 9), G: (45, -3) ~ aligned in 6.32s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/melons.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"melons"</b> ~ R: (173, 9), G: (77, 5) ~ aligned in 6.72s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/onion_church.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"onion_church"</b> ~ R: (107, 31), G: (48, 24) ~ aligned in 6.46s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/sculpture.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"sculpture"</b> ~ R: (137, -33), G: (31, -17) ~ aligned in 6.99s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/three_generations.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"three_generations"</b> ~ R: (105, 9), G: (45, 13) ~ aligned in 6.42s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/train.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"train"</b> ~ R: (78, 31), G: (40, 0) ~ aligned in 6.58s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/monastery.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"monastery"</b> ~ R: (2, 2), G: (-4, 2) ~ aligned in 0.88s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/cathedral.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"cathedral"</b> ~ R: (11, 3), G: (4, 1) ~ aligned in 0.92s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/tobolsk.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"tobolsk"</b> ~ R: (6, 3), G: (2, 2) ~ aligned in 0.98s</p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/forest.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"forest"</b> ~ R: (126, 16), G: (56, 15) ~ aligned in 6.51s <b>*</b></p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/mozhaisk.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"mozhaisk"</b> ~ R: (88, 24), G: (40, 14) ~ aligned in 6.83s <b>*</b></p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/artisans.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"artisans"</b> ~ R: (140, 16), G: (60, 16) ~ aligned in 6.5s <b>*</b></p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/mosque.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"mosque"</b> ~ R: (62, 7), G: (23, 8) ~ aligned in 6.34s <b>*</b></p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/dog.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"dog"</b> ~ R: (65, -15), G: (1, -15) ~ aligned in 6.27s <b>*</b></p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/settlement.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"settlement"</b> ~ R: (80, 32), G: (16, 16) ~ aligned in 7.46s <b>*</b></p>
+            </div>
+        </div>
+        <div class="gallery_item">
+            <img src="gallery_imgs/lynx.jpg" class="gallery_img">
+            <div class="gallery_label">
+                <p><b>"lynx"</b> ~ R: (127, 24), G: (53, 16) ~ aligned in 6.56s <b>*</b></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
