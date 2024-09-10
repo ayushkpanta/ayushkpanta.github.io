@@ -54,7 +54,7 @@
         Using RGB pixel values as a basis for comparison worked quite well for every image except for "emir.tif". This is due to a notable difference in brightness levels among the channels, which can be seen in the images below. More specifically, the R channel is much brighter than the others, causing the computation of NCC with raw pixel values to result in a misaligned image. I want to note that it is technically <em>still possible</em> to align this image using pixel values, as I was able to do so. However, this was done using a brute-force method that took a few minutes and did not truly leverage the power of the image pyramid.
     </p>
     <p>
-        Thus, I opted to apply an <b>Canny edge detector</b> to the individual color channels before creating the image pyramids. This converts the channel matrices into binary matrices that outline the most significant edges within an image. These edges are advantageous because they are less sensitive to (reasonable) differences in brightness between color channels. I implemented this using the skimage Canny filter function and found an optimal value for the parameter sigma to be 3.
+        Thus, I opted to apply an <b>Canny edge detector</b> to the individual color channels before creating the image pyramids. This converts the channel matrices into binary matrices that outline the most significant edges within an image. These edges are advantageous because they are less sensitive to (reasonable) differences in brightness between color channels. I implemented this using the skimage Canny filter function and found an optimal value for the parameter "sigma" to be 3.
     </p>
     
 
