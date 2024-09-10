@@ -12,7 +12,7 @@
 
     <h3>Background</h3>
     <p>
-        In this project we explore the work of <b>Sergei Mikhailovich Prokudin-Gorskii</b>, a visionary Russian photographer. In the early 20th century, Prokudin-Gorskii would travel across the Empire, capturing its diverse scenes by exposing them in parallel on glass plates with red, green, and blue filters. He hoped to use these images in conjunction with special projectors to teach children across Russia, but his dream was cut short when he left Russia in 1918 after the revolution.
+        In this project we explore the work of <b>Sergei Mikhailovich Prokudin-Gorskii</b>, a visionary Russian photographer. In the early 20th century, Prokudin-Gorskii traveled across the Russian Empire, capturing its diverse scenes by exposing them in parallel on glass plates with red, green, and blue filters. He hoped to use these images in conjunction with special projectors to teach children across Russia, but his dream was cut short when he left Russia in 1918 after the revolution.
     </p>
     <p>
         However, we computer vision enthusiasts are lucky that Prokudin-Gorskii's glass slides have been preserved and digitized by the Library of Congress. Our task is to align the RGB slides and reconstruct the full color images, allowing us to glimpse into the final days of the Russian Empire.
@@ -30,7 +30,7 @@
         The basic technique I employed involved shifting the matrices for the R and G color channels with respect to the B channel matrix. For each matrix shift, I computed the <b> Normalized Cross Correlation (NCC)</b> between the shifted matrix and the B channel matrix, keeping track of the shift vectors that produce the maximum NCC. It is important to note that I computed the NCCs using only the middle slices of the matrices, which helped avoid noise from border artifacts and reduced the algorithm's runtime.
     </p>
     <p>
-        While this foundational technique worked well for small images, it failed to align larger images within a reasonable time frame. To address this, I utilized the <b>Gaussian Pyramid</b>. In this classical technique, we blur and downscale an image multiple times. For this case, we create a separate pyramid for each image channel. We then run the aforementioned algorithm on the smallest images to obtain initial shift vectors, which account for the general patterns between matrices. As we move back up to larger levels of the pyramid, we search in a small area around a scaled version of the previous shift vectors to make more precise adjustments and capture finer details.
+        While this foundational technique worked well for small images, it failed to align larger images within a reasonable time frame. To address this, I utilized the <b>Gaussian Pyramid</b>. In this classical technique, we blur and downscale an image to create multiple resolutions. For this case, we create a separate pyramid for each image channel. We then run the aforementioned algorithm on the smallest images to obtain initial shift vectors, which account for the general patterns between matrices. As we move back up to larger levels of the pyramid, we search in a small area around a scaled version of the previous shift vectors to make more precise adjustments and capture finer details.
     </p>
     <p>
         I will quickly outline the key parameters for this basic algorithm and their optimal values that I found through tuning: <b>1)</b> Minimum dimension for the image pyramid = 128. <b>2)</b> Number of middle pixels for NCC computation = 75. <b>3)</b> Initial shift window dimensions = [-15, 15]. <b>4)</b> Leniency (determines the search area around an informed shift) = 1. I found it particularly interesting that such a small leniency parameter was sufficient to align the images.
@@ -51,7 +51,7 @@
 
     <h3>Bells and Whistles: The Canny Filter</h3>
     <p>
-        Using RGB pixel values as a basis for comparison worked quite well for every image except for "emir.tif". This is because this image has a notable difference in brightness levels among the channels, which can be seen in the images below. More specifically, the R channel is much brighter than the others, causing the computation of NCC with raw pixel values to result in a misaligned image. I want to note that it is technically <em>still possible</em> to align this image using pixel values, as I was able to do so. However, this was done using a brute-force method that took a few minutes and did not truly leverage the power of the image pyramid.
+        Using RGB pixel values as a basis for comparison worked quite well for every image except for "emir.tif". This is due to a notable difference in brightness levels among the channels, which can be seen in the images below. More specifically, the R channel is much brighter than the others, causing the computation of NCC with raw pixel values to result in a misaligned image. I want to note that it is technically <em>still possible</em> to align this image using pixel values, as I was able to do so. However, this was done using a brute-force method that took a few minutes and did not truly leverage the power of the image pyramid.
     </p>
     <p>
         Thus, I opted to apply an <b>Canny edge detector</b> to the individual color channels before creating the image pyramids. This converts the channel matrices into binary matrices that outline the most significant edges within an image. These edges are advantageous because they are less sensitive to (reasonable) differences in brightness between color channels. I implemented this using the skimage Canny filter function and found an optimal value for the parameter sigma to be 3.
@@ -78,7 +78,7 @@
         </div>
     
         <p>
-            However, that's not to say that using pixels for NCC has no advantages. In fact, it actually worked better than the Canny filter method for a number of images that I selected from the collection. I include some of these images below, but I do not provide comparison images, shift vectors, or alignment times as they are not relevant to my final image alignment process. In the case of the first and third images below, the Canny process actually resulted in a completely misaligned image. I suppose this may be because such images may have more weakly-defined edges or other unknown challenges within the color channels, which can weaken the efficacy of the Canny filter. I would love to explore this in the future, perhaps using histogram equalization or other more complex features and metrics.
+            However, that's not to say that using pixels for NCC has no advantages. In fact, it actually worked better than the Canny filter method for a number of images that I selected from the collection. I include some of these images below, but I do not provide comparison images, shift vectors, or alignment times as they are not relevant to my final image alignment process. In the case of the first and third images below, the Canny process resulted in a completely misaligned image. I suppose this may be because such images may have more weakly-defined edges or other unknown challenges within the color channels, which can weaken the efficacy of the Canny filter. I plan to explore this further in the future, perhaps using histogram equalization or other more complex features and metrics.
 
             <div class="img_container">
                 <div class="imgs">
@@ -92,7 +92,7 @@
 
     <h3>Gallery</h3>
 
-    <p>Please enjoy this gallery of aligned images. Additional images selected from the collection are indicated with asterisks. Please note that alignment times may differ slightly when running the script on your machine, as these times are based on a particularly fast round of alignment.</p>
+    <p>The following gallery showcases the aligned images, along with their optimal shift vectors and the time it took to align them. The shift vectors are in the form (y, x). Additional images selected from the collection are indicated with asterisks. Please note that alignment times may differ slightly when running the script, as these times are based on a particularly fast round of alignment.</p>
 
     <div class="gallery_grid">
         <div class="gallery_item">
