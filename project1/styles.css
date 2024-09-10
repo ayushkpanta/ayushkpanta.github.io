@@ -34,8 +34,9 @@ a {
 .gallery_grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    width: 100%;
-    gap: 10px
+    width: 100%;    
+    gap: 10px;
+    justify-content: center;
 }
 .gallery_item {
     display: flex;
@@ -44,7 +45,7 @@ a {
     margin-bottom: 20px; 
 }
 .gallery_img {
-    height: 325px;
+    height: 290px;
 }
 .gallery_img:hover{
     transform: scale(1.025);
