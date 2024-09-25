@@ -6,18 +6,20 @@
     <meta name="author" content="Ayush Panta">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="images1.1/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-    <table style="width:100%;max-width:800px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+    <table style="width:100%;max-width:900px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
         <tbody>
             <tr style="padding:0px">
                 <td style="padding:50px">
-                    <!-- <h1>CS 180 Portfolio</h1> -->
                     <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
                         <tbody>
                             <tr>
-                                <td style="padding:20px;width:100%;vertical-align:middle">
+                                <td style="padding:15px;width:100%;vertical-align:middle">
                                     <h2>CS 180: Fun with Filters and Frequencies</h2>
                                     <p>
                                     </p>
@@ -25,6 +27,590 @@
                             </tr>
                         </tbody>
                     </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>Introduction</h3>
+                                <p>
+                                    In this project, we explore fundamental techniques in image manipulation through the use of filters and frequencies. Our focus is their application in edge detection, image sharpening, hybrid image generation, and multi-resolution blending.
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle;padding-top:0px; ">
+                                <h3>1. Fun with Filters</h3>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle;padding-top:0px">
+
+                                <h4>1.1. Finite Difference Operators</h4>
+                                <p>
+                                    We first look at the finite difference operators for edge detection. They are \(D_x = [1, -1]\) and \(D_y = [1, -1]^T\), used as approximations of the first derivative in the horizontal and vertical directions, respectively. It is important to note that applying \(D_x\) captures <em>vertical</em> edges, while \(D_y\) captures <em>horizontal</em> edges. We can understand this intuitively by considering how there wouldn't actually be a significant difference between laterally adjacent pixels on a horizontal edge.
+                                </p>
+                                <p>
+                                    For practical use, let's consider an image \(img\). We obtain gradients \(G_x = img * D_x\) and \(G_y = img * D_y\) through convolving \(img \) with each of the filters. These are essentially partial derivatives of the image w.r.t. \(x\) and \(y\). We then compute gradient magnitude \(G_{magnitude} = (G_x^2 + G_y^2)^{1/2}\), which represents the strength of the edges. Finally, we binarize the gradient magnitude using a qualitatively chosen threshold to receive a binary image \(img_{edges}\).
+                                </p>
+                                <p>
+                                    Let's observe these operations performed on the image "cameraman.png". The edges were computed with \(threshold = 0.3\). 
+                                </p>
+                                <div class="img_container">
+                                    <div class="imgs">
+                                        <img src="images1.1/cameraman.png" 
+                                        style="width: 33%; height: auto;"/>
+                                        <p class='img_label'><em>Cameraman</em></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="img_container">
+                                    <div class="imgs">
+                                        <img src="images1.1/dX_fd_cameraman.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( G_x \)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images1.1/dY_fd_cameraman.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( G_y \)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images1.1/magnitude_fd_cameraman.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( G_{magnitude} \)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images1.1/edges_fd_cameraman.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Cameraman Edges</em></p>
+                                    </div>
+                                </div>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>1.2. Derivative of Gaussian Filter</h4>
+                                <p>
+                                    The finite difference operators performed reasonably well, though we notice that the edges appear somewhat jagged and that there are quite a few noisy artifacts. We can address this by utilizing our good friend, the <b>Gaussian</b> kernel. We are familiar with the notion of blurring an image using a 2D Gaussian, and this is precisely how we will remove the noise in our image.
+                                </p>
+                                <p>
+                                    There are two ways in which we can do this, and they yield identical results. First, we can blur our image with our Gaussian, and then apply the previous finite difference edge detection. We call this operation \(DoG_1\). Alternatively, we can first convolve a kernel \(K\) with the finite difference operators to obtain \(K_x = K * D_x \) and \(K_y = K * D_y \). The following diagram illustrates how this may look for a Gaussian kernel with \(kernel\_size = 15\) and  \(\sigma = 3\).
+                                </p>
+                                
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images1.2/gauss_15_3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Gaussian \(K\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images1.2/gauss_dX.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( K_x \)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images1.2/gauss_dY.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( K_y \)</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    Following that, we can convolve the image with these more complex filters, then continue with magnitude computation and the creation of a binary edge image. We call this operation \(DoG_2\). Here, we observe these operations performed on the image "cameraman.png". These images are from the second procedure that I outlined, though they are the same for both procedures. We see key differences between these results and the edges obtained using only the finite difference operators. Namely, they are much smoother and "stronger", with little to no noisy artifacts. The parameters I used were \(kernel\_size = 10\), \(\sigma= 1\), and \(threshold = 0.11\).
+                                </p>
+                                <div class="img_container"
+                                style="width: 100%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images1.2/dX_dog2_cameraman.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(G_x\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images1.2/dY_dog2_cameraman.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(G_y\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images1.2/magnitude_dog2_cameraman.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( G_{magnitude} \)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images1.2/edges_dog2_cameraman.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Cameraman Edges</em></p>
+                                    </div>
+                                </div>
+                                <p> 
+                                    Let's compare the results from \(DoG_1\) and \(DoG_2\). Since there is no difference between the two results, we conclude that the procedures are identical.
+                                </p>
+                                <div class="img_container"
+                                style="width: 50%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images1.2/edges_dog1_cameraman.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em> \(DoG_1\) Result</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images1.2/edges_dog2_cameraman.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(DoG_2\) Result</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>2. Fun with Frequencies</h3>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle; padding-top:0px; ">
+                                <h4>2.1. Image Sharpening</h4>
+                                <p>
+                                    The Gaussian filter is also a form of <b>low-pass</b> filter, which is a filter that isolates lower frequencies of an image. This is intuitive, as a blurred version of an image will retain broader information, but loses finer details such as edges. Therefore, to perform image sharpening, we can get \(details = original\_image - blurred\_image \), then get \(sharpened\_image = original\_image + \alpha \cdot details \). We can combine these operations into a single filter called the <b>unsharp mask filter</b>. Such a filter is given by \(F = (1 + \alpha \cdot U) - (\alpha \cdot K)\), where \(K\) is a Gaussian filter and  \(U\) is a unit impulse matrix of the same dimensions as \(K\).
+                                </p>
+                                <p>
+                                    Now for some examples. Here I sharpen "taj.jpg" with parameters \(kernel\_size = 10\), \(\sigma = 1\), and \(\alpha = 1\).
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.1/taj.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Taj Mahal</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.1/details_taj.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Details \(D\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.1/sharpened_1taj.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sharpened with \(\alpha = 1\)</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    Next, I sharpen "foggy.jpg" with parameters \(kernel\_size = 10\), \(\sigma = 3\), and \(\alpha \in \{3, 20\}\). We are able to add a fair bit of detail to both of the trees.
+                                </p>
+                                <div class="img_container"
+                                style="width: 100%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.1/foggy.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Foggy Trees</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.1/details_foggy.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Details \( D \)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.1/sharpened_3foggy.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sharpened with \(\alpha = 3\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.1/sharpened_20foggy.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sharpened with \(\alpha = 20\)</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    Lastly, I explore the recovery of fine detail in a blurred image. I first sharpen "owl.jpg" with parameters \(kernel\_size = 5\), \(\sigma = 1\), and \(\alpha = 1\).
+                                </p>
+                                    <div class="img_container"
+                                    style="width: 100%; height: auto; margin: 0 auto">
+                                        <div class="imgs">
+                                            <img src="images2.1/owl.jpg" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>Owl</em></p>
+                                        </div>
+                                        <div class="imgs">
+                                            <img src="images2.1/details_owl.jpg" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>Details \( D \)</em></p>
+                                        </div>
+                                        <div class="imgs">
+                                            <img src="images2.1/sharpened_1owl.jpg" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>Sharpened with \(\alpha = 1\)</em></p>
+                                        </div>
+                                </div>
+                                <p>
+                                    I follow this by blurring "owl.jpg" with parameters \(kernel\_size = 5\) and \(\sigma = 1\), then sharpening with the same paramters I used above. We note that while there is successful sharpening, we are unable to recover the fine details in the original image. The reason for this becomes evident when we compare the details isolated during each sharpening. Namely, the details extracted in the original sharpening are much finer than those obtained during the second.
+                                </p>
+                                    <div class="img_container"
+                                    style="width: 100%; height: auto; margin: 0 auto">
+                                        <div class="imgs">
+                                            <img src="images2.1/owl_blurry.jpg" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>Owl Blurred</em></p>
+                                        </div>
+                                        <div class="imgs">
+                                            <img src="images2.1/details_owl_blurry.jpg" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>Details \( D \)</em></p>
+                                        </div>
+                                        <div class="imgs">
+                                            <img src="images2.1/sharpened_1owl_blurry.jpg" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>Sharpened with \(\alpha = 1\)</em></p>
+                                    </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>2.2. Hybrid Images</h4>
+                                <p>
+                                    Human perception is truly fascinating. When we are close to an image, we are able to percieve, and therefore are naturally inclined to focus on, the fine, high-frequency details. Conversely, when we are far away from an image, we focus on the broader, low-frequency details.
+                                </p>
+                                <p>
+                                    In this portion of the project, we take advantage of this natural machinery to  create an intruiging visual phenomenon.  That is, by combining a blurred version of one image with the fine details from a different image, we can create hybrid images. In such images, we see different things depending on our distance from the image, the size of the image, or how hard we squint or blur our eyes. Color can also be situationally applied to enhance the effect.
+                                </p>
+                                <p>
+                                    Let's look at some examples (please feel free to zoom in/out to better experience the effect). We begin with the combination of Nutmeg and Derek. I used Gaussian parameters of \(kernel\_size = 39\) and \(\sigma = 13\) for both the blurring of Derek and the extraction of details from Nutmeg.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.2/aligned_nutmeg.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Nutmeg</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/aligned_DerekPicture.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Derek</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/DerekNutmeg.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Nutmeg-O</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    Next, we have a combination of the Earth and a snow globe. I was concerned that this would fail due to significant amount of fine detail in both of the images, but I was reasonably satisfied with the results. Though we can't see the snow when looking at the image from afar, the details of the Earth almost act as a substitute for the snow. I used Gaussian parameters of \(kernel\_size = 39\) and \(\sigma = 13\) for the Earth and \(kernel\_size = 25\) and \(\sigma = 5\) for the snowglobe.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.2/aligned_earth.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Globe</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/aligned_snowglobe.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Snow Globe</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/earth_globe.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Globe Globe</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    For our last successful hybrid image, we have a combination between LeBron and a goat. I used Gaussian parameters of \(kernel\_size = 39\) and \(\sigma = 13\) for the goat and \(kernel\_size = 49\) and \(\sigma = 15\) for LeBron.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.2/aligned_goat.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>A Goat</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/aligned_james.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>The Goat</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/goat_james.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Goats</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    I provide the individual images, their high/low-frequency intermediates, and the hybrid image, along with the FFT visualization for each. The FFT visualizations represent the frequency components within an image. The strong vertical and horizontal "bars" represent low frequencies. This is why they are the primary components in the FFT visualization of the blurred image, but are much less prominent for the FFT visuization for the detail image.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.2/goat.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Goat</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/hi_goat.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Goat Detail</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/james.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>LeBron</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/blurred_james.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>LeBron Blurred</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/goat_james.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Hybrid</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.2/fft_goat.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Goat FFT</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/fft_hi_goat.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Goat Detail FFT</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/fft_james.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>LeBron</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/fft_blurred_james.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>LeBron Blurred FFT</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/fft_goat_james.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Hybrid FFT</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    Lastly, we have a failure. I believe that this combination failed because the background image of the land pre-development simply cannot compete with the strong edges of the modern image. For reference, I used Gaussian parameters of \(kernel\_size = 39\) and \(\sigma = 13\) for the new image and \(kernel\_size = 25\) and \(\sigma = 5\) for the old image.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+      
+                                    <div class="imgs">
+                                        <img src="images2.2/aligned_manhat_new.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Modern Manhattan</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/aligned_manhat_old.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Early Manhattan</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.2/manhat.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Failed Manhattan</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!-- End -->
+                <!-- Block Start -->
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>2.3. Gaussian and Laplacian Stacks</h4>
+                                <p>
+                                    Imagine you wanted to blend two images into a sort of Frankenstein image. The most rudimentary approach to achieving this would be to simply slice each image into the appropriate shape and piece them together. However, this would leave quite a noteiceable edge, which is not ideal.
+                                </p>
+                                <p>
+                                    A better way to approach image blending is through the use of <b>Gaussian</b> and <b>Laplacian stacks</b>. The Gaussian stack is similar to the <b>Gaussian Pyramid</b> that we explored in Project 1, with the difference being that it applies a Gaussian blur at each step, but does <em>not</em> downscale the image. That said, such a stack could be considered a stack of <em>low-pass filtered</em> images. We can then use the Gaussian stack to create the Laplacian stack. To do this, we iterate through the Gaussian stack, updating each image with the difference between itself and the next image, thus isolating the frequency bands of the image. Finally, in order to use the Laplacian stack to blend two images, we also need to create a Gaussian stack for a mask.
+                                </p>
+                                <p>
+                                    So, we have a Laplacian stack for each image and a Gaussian stack for our mask of choice. We can then iterate through the levels of these stacks and alpha blend at each level, adding the resultant matrices to an array. An alpha blended image \(img_{\alpha}\) can be given by \(img_{\alpha} = m \cdot img_1 + (1 - m) \cdot img_2\), where \(m\) represents the mask. Finally, we can collapse these images in the array to arrive at an image that has been blended at multiple resolutions.
+                                </p>
+                                <p>
+                                    Below are the stacks for the multi-resolution blending of "orange.jpeg" and "apple.jpeg". It is my recreation of <b>Figure 3.2</b> in <b>Szelski</b>, but with a bit more detail. The first two rows are Laplacian stacks, the third row is a Gaussian stack, and the fourth row depicts blends between masked items at each level of the Laplacian stacks. The items in the last column of each row are collapsed results of the previous items in the row.
+                                </p>
+                                <p>
+                                    I want to note that I opted to apply a blur to my initial mask as well, as the edge was otherwise too aggressive for my taste. I had \(levels = 5\), parameters \(kernel\_size = 25\) and \(\sigma = 7\) for the Laplacian stack, and parameters \(kernel\_size = 75\) and \(\sigma = 35\) for the Gaussian stack. These choices were somewhat arbitrary; both smaller and larger numbers worked perfectly fine, but I chose to stick with these.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.3/l0_apple.jpeg" 
+                                        style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l1_apple.jpeg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l2_apple.jpeg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l3_apple.jpeg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l4_apple.jpeg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/result_apple.jpeg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.3/l0_orange.jpeg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l1_orange.jpeg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l2_orange.jpeg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l3_orange.jpeg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l4_orange.jpeg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/result_orange.jpeg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.3/l0_mask_oraple.jpg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l1_mask_oraple.jpg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l2_mask_oraple.jpg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l3_mask_oraple.jpg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l4_mask_oraple.jpg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/result_mask_oraple.jpg" style="width: 100%; height: auto;"/>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.3/l0_blend_oraple.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(l_1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l1_blend_oraple.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(l_2\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l2_blend_oraple.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(l_3\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l3_blend_oraple.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(l_4\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/l4_blend_oraple.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(l_5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/result_oraple.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Collapsed</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    Here are my results for two versions of such a blend. While the "Orapple" is certainly more interesting to look at, I'd much rather eat the "Aorange".
+                                </p>
+                                <div class="img_container"
+                                style="width: 50%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.3/result_oraple.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>The "Oraple"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.3/result_aorange.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>The "Aorange"</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>2.4. Multiresolution Blending</h4>
+                                <p>
+                                    Let's see some custom blends. First, I blended images of the same trees in the winter and in the summer.  I had \(levels = 5\), parameters \(kernel\_size = 25\) and \(\sigma = 7\) for the Laplacian stack, and parameters \(kernel\_size = 75\) and \(\sigma = 35\) for the Gaussian stack. This is definitely by favorite blend, as it is just so subtle.
+                                </p>
+                                <div class="img_container"
+                                style="width: 100%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.4/winter_trees.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Winter Trees</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.4/summer_trees.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Summer Trees</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.4/l0_mask_trees.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Mask</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.4/result_trees.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Blended Trees</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    Next, I used an irregularly shaped mask to blend a picture of Monkey D. Luffy into Li Ka Shing 245. I made this mask using Photoshop. I had \(levels = 3\), parameters \(kernel\_size = 3\) and \(\sigma = 3\) for the Laplacian stack, and parameters \(kernel\_size = 3\) and \(\sigma = 3\) for the Gaussian stack. The parameters for the Gaussian kernel are far more tame for this example due to the nature of the blend.
+                                </p>
+                                <div class="img_container"
+                                style="width: 100%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.4/luffy.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Luffy</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.4/li_ka_shing.jpeg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Li Ka Shing 245</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.4/luffy_mask-2.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Irregular Mask</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.4/result_lecture_time.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"Lecture"</em></p>
+                                    </div>
+                                    
+                                </div>
+                                <p>
+                                    Lastly, I wanted to try multiple blends on the same pair of images. I blended "sun.jpg" and "moon.jpg" with both versions of horizontal masks, and then blended them with a vertical mask. For all blends, I had \(levels = 5\), parameters \(kernel\_size = 25\) and \(\sigma = 7\) for the Laplacian stack, and parameters \(kernel\_size = 75\) and \(\sigma = 35\) for the Gaussian stack. This result was more interesting than I expected, as the sun's halo made for an interesting layer of complexity when blending the images together.   
+                                </p>
+                                <div class="img_container"
+                                style="width: 100%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images2.4/munn.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Blend 1</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.4/smoon.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Blend 2</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.4/l0_mask_munsmoonn.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Mask</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images2.4/result_munsmoonn.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Blend 3</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>Conclusion</h3>
+                                <p>
+                                    Working on this project has deepened my understanding of image filters, convolution operations, and frequency analysis. Experiencing the elegance of these concepts in practice has significantly enhanced my appreciation of classical computer vision.
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
                 </td>
             </tr>
         </tbody>
