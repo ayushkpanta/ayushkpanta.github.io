@@ -400,7 +400,7 @@
                             <td style="padding:15px;width:100%;vertical-align:middle">
                                 <h4>2.3. Gaussian and Laplacian Stacks</h4>
                                 <p>
-                                    Imagine you wanted to blend two images into a sort of Frankenstein image. The most rudimentary approach to achieving this would be to simply slice each image into the appropriate shape and piece them together. However, this would leave quite a noteiceable edge, which is not ideal.
+                                    Imagine you wanted to blend two images into a sort of Frankenstein image. The most rudimentary approach to achieving this would be to simply slice each image into the appropriate shape and piece them together. However, this would leave quite a noticeable edge, which is not ideal.
                                 </p>
                                 <p>
                                     A better way to approach image blending is through the use of <b>Gaussian</b> and <b>Laplacian stacks</b>. The Gaussian stack is similar to the <b>Gaussian Pyramid</b> that we explored in Project 1, with the difference being that it applies a Gaussian blur at each step, but does <em>not</em> downscale the image. That said, such a stack could be considered a stack of <em>low-pass filtered</em> images. We can then use the Gaussian stack to create the Laplacian stack. To do this, we iterate through the Gaussian stack, updating each image with the difference between itself and the next image, thus isolating the frequency bands of the image. Finally, in order to use the Laplacian stack to blend two images, we also need to create a Gaussian stack for a mask.
