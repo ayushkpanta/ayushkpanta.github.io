@@ -177,7 +177,7 @@
                                     The Gaussian filter is also a form of <b>low-pass</b> filter, which is a filter that isolates lower frequencies of an image. This is intuitive, as a blurred version of an image will retain broader information, but loses finer details such as edges. Therefore, to perform image sharpening, we can get \(details = original\_image - blurred\_image \), then get \(sharpened\_image = original\_image + \alpha \cdot details \). We can combine these operations into a single filter called the <b>unsharp mask filter</b>. Such a filter is given by \(F = (1 + \alpha \cdot U) - (\alpha \cdot K)\), where \(K\) is a Gaussian filter and  \(U\) is a unit impulse matrix of the same dimensions as \(K\).
                                 </p>
                                 <p>
-                                    Now for some examples. Here I sharpen "taj.jpg" with parameters \(kernel\_size = 10\), \(\sigma = 1\), and \(\alpha = 1\).
+                                    Now for some examples. Here I sharpen "taj.jpg" with parameters \(kernel\_size = 10\), \(\sigma = 1\), and \(\alpha = 1\). We can see
                                 </p>
                                 <div class="img_container"
                                 style="width: 75%; height: auto; margin: 0 auto">

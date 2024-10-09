@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>CS 180 Project 2</title>
+    <meta name="author" content="Ayush Panta">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="images1.1/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <table style="width:100%;max-width:900px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+        <tbody>
+            <tr style="padding:0px">
+                <td style="padding:50px">
+                    <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                        <tbody>
+                            <tr>
+                                <td style="padding:15px;width:100%;vertical-align:middle">
+                                    <h2>CS 180: Face Morphing</h2>
+                                    <p>
+                                    </p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>Introduction</h3>
+                                <p>
+                                    In this project, I explore image warping through affine transformations of corresponding polygon meshes in pairs of images. This has various applications, from creating seamless morphs between images to generating an average face from a population.
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>1. Defining Correspondences</h3>
+                                <p>
+                                    I began by creating a custom class for correspodence selection using Matlotlib's .ginput() functionality. This allowed me to select correspondence points between any pair of images with ease. The correspondence data between a pair of images was stored as a JSON file for persistence. I followed this up by creating a triangular mesh for these correspondences using Delaunay triangulation, which partitions the convex hull of the point sets into sets of unique triangles. We can perform affine transformation and inverse warps on these triangles to achieve our desired morph.
+                                </p>
+                                </p>
+                                <p>Below are images of Christian Bale and James Franco from Martin Schoeller's <a href = "https://martinschoeller.com/Christian-Bale-3" target="_blank">"Close Up"</a> series with correspondences and Delaunay triangles overlaid.</p>
+                                </p>
+                                <div class="img_container"
+                                style="width: 50%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/bale_corr.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Christian Bale (Triangulated)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/franco_corr.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>James Franco (Triangulated)</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>2. Computing the "Mid-Way Face"</h3>
+                                <p>
+                                    Computing the mid-way face between two images involves some intereting math. We begin by creating an weighted average point set using the correspondence sets, and create a triangulation for this as well. The weighting for the mid-way face is \(0.5\), though we will change this later on to achieve a morphing effect. We then loop through the triangles, and determine a matrix \(A^{-1}\), or the inverse affine transformation matrix between an averaged triangle and it's corresponding triangle in the image we aim to morph. We use a polygon mask and bilinear interpolation to retrieve the appropriate data from the source images and map it to their corresponding (initially blank) output images. We then cross-dissolve the output images with the aforementioned weight to obtain the mid-way face.
+                                </p>
+                                <p> Here is the mid-way face between Christian Bale and James Franco.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/bale_warped.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Christian Bale</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/bale_franco_midway.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Mid-Way Face</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/franco_warped.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>James Franco</em></p>
+                                    </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>3. The Morph Sequence</h3>
+                                <p>
+                                    We can now generate a morph sequence by simply iterating through a set of weights, generating a face for each weight, and stiching these images together in sequence.
+                                </p>
+                                <p>
+                                    I provide some example sequences below. To the left is a sequence between Christian Bale and James Franco. It uses weights in a range from \([1,0]\) with increments of size \(0.05\). It has \(40\) frames, with each frame lasting  for around \(67\) milliseconds.
+                                    To the right is a sequence between Lionel Messi, Roger Federer, Kobe Bryant, Mark Webber, and Mike Tyson. It uses the same weighting scheme, and has \(100\) frames, with each frame lasting for around \(67\) milliseconds.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/bale_franco_morph-ezgif.com-loop-count.gif" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Bale-Franco Morph Sequence</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/athletes.gif" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Athlete Morph Sequence</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>4. The "Mean Face" of a Population</h3>
+                                <p> For this part, I used a dataset from the <a href="https://fei.edu.br/~cet/facedatabase.html" target="_blank">FEI Face Database</a> to compute average faces for smiling and neutral subsets. To begin with, I parsed the ".pts" files, added corner points, and saved them as JSON files. I used these processed points to create average point sets for smiling and neutral images. Then, I warped the faces in each subset to the average point set and cross-dissolved to obtain average faces. Below are some examples of subjects from each subset with their faces morphed to the subset average, followed by the average face for the subset.
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/51b.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Smiling Subject #1</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/51b.jpg_warped.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Warped</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/57b.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Smiling Subject #2</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/57b.jpg_warped.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Warped</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/avg_face_smile.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Average Smiling Face</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/5a.jpg" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Neutral Subject #1</em></p>
+                                </div>
+                                <div class="imgs">
+                                    <img src="images/5a.jpg_warped.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Warped</em></p>
+                                </div>
+                                <div class="imgs">
+                                    <img src="images/86a.jpg" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Neutral Subject #2</em></p>
+                                </div>
+                                <div class="imgs">
+                                    <img src="images/86a.jpg_warped.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Warped</em></p>
+                                </div>
+                                <div class="imgs">
+                                    <img src="images/avg_face_neutral.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Average Neutral Face</em></p>
+                                </div>
+                                </div>
+                                <p>
+                                    Given this, we can easily warp other images to the average face geometries. Here is Kanye West warped to the average smiling and neutral faces.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/kanye_cropped.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Kanye West</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/kanye_smile.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Kanye (Smile Warp)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/kanye_neutral.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Kanye (Neutral Warp)</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    We can also warp the average face to Kanye's geometry. Here I warp the averge face from the entire dataset to Kanye's face.
+                                </p>
+                                <div class="img_container"
+                                style="width: 50%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/avg_face.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>True Average Face</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/avg_face.png_warped.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Average Warped to Kanye</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>5. Caricatures: Extrapolating from the Mean
+                                    <p>
+                                        Lastly, we can use unorthodox weights to create caricatures. Below are some some caricatures generated with varying weight \(w\) using the smiling set.
+                                    </p>                          
+                                    <div class="img_container"
+                                    style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/kanye_2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(w = -2.0\)</em></p>
+                                    </div>
+                                        <div class="imgs">
+                                            <img src="images/kanye_0.5.png" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>\(w = -0.5\)</em></p>
+                                        </div>
+                                        <div class="imgs">
+                                            <img src="images/kanye_1.5.png" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>\(w = +1.5\)</em></p>
+                                        </div>
+                                        <div class="imgs">
+                                            <img src="images/kanye_3.png" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>\(w = +3.0\)</em></p>
+                                        </div>
+                                    </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>6. Bells and Whistles</h3>
+                                <p>
+                                    For my Bells and Whistles, I morphed George Clooney using an image of the average Bollywood actor's face.
+                                </p>
+                                <div class="img_container"
+                                style="width: 50%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/george.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>George Clooney</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/avg_bolly_m.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Average Bollywood Actor</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    I produced three morphs. First, I morph George's geometry to match the average face. We see quite a clear difference in forehead and eye shape. Next, I morph the average face's geometry to match George's geometry. Here, George's jawline is quite evident. Lastly, we combine these two morphs to get a Bollywood version of George Clooney.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/a.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Clooney with Average Face Geometry</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/b.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Average Face with Clooney Geometry</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/c.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Total Morph</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+</body>
+</html>
