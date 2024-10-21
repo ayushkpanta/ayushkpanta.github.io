@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>CS 180 Project 4</title>
+    <meta name="author" content="Ayush Panta">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="images1.1/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <table style="width:100%;max-width:900px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+        <tbody>
+            <tr style="padding:0px">
+                <td style="padding:50px">
+                    <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                        <tbody>
+                            <tr>
+                                <td style="padding:15px;width:100%;vertical-align:middle">
+                                    <h2>CS 180: Stitching Photo Mosaics</h2>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>Part A: Image Warping and Mosaicing</h3>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Introduction</h3>
+                                    <p>
+                                        In the first part of this project, we explore the fundamentals of warping images using homography-based transformations.
+                                    </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Taking Images</h3>
+                                <p>Below are the sets of images that I will use to demonstrate basic image mosaicing. Please note that I did not have the time to collect as many images as I would have liked for Part A, so some images ("himal.png" and rectification images) were sourced online. </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/himal_1.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"himal_left.png"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/himal_ref.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"himal_ref.png"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/himal_2.jpg" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"himal_right.png"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/soda1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"hearst_ave_left.png"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/soda2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"hearst_ave_ref.png"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/soda3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"hearst_ave_right.png"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/shelf1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"shelf_top.png"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/shelf2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"shelf_ref.png"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/shelf3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"shelf_bottom.png"</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Recovering Homographies</h3>
+                                <p>
+                                    A homography is a transformation that projects points in one plane onto corresponding points in another plane. In order to apply this, we must first define correspondences between images. Here are some examples of what this may look like:
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/him_corr_1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"himal" correspondences</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/hearst_corr.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"hearst_ave" correspondences</em></p>
+                                    </div>
+                                </div>
+                                <p>
+                                    With a given set of source (\((x,y)\)) and target (\((x',y')\)) coordinates, we can compute a homography matrix \(H\):
+
+                                    \[
+                                    \begin{bmatrix} 
+                                    a & b & c\\ 
+                                    d & e & f\\ 
+                                    g & h & 1
+                                    \end{bmatrix} 
+                                    \begin{bmatrix} 
+                                    x\\ 
+                                    y\\ 
+                                    1
+                                    \end{bmatrix} 
+                                    = 
+                                    \begin{bmatrix} 
+                                    wx'\\ 
+                                    wy'\\ 
+                                    w
+                                    \end{bmatrix} 
+                                    \]
+                                </p>
+                                <p>
+                                    This can be manipulated into the form:
+                                    \[
+                                    \begin{bmatrix} 
+                                    x & y & 1 & 0 & 0 & 0 & -xx' & -yx'\\ 
+                                    0 & 0 & 0 & x & y & 1 & -xy' & -yy'\\ 
+                                    \end{bmatrix} 
+                                    \begin{bmatrix} 
+                                    a\\ 
+                                    b\\ 
+                                    c\\ 
+                                    d\\ 
+                                    e\\ 
+                                    f\\ 
+                                    g\\ 
+                                    h\\ 
+                                    \end{bmatrix} 
+                                    = 
+                                    \begin{bmatrix} 
+                                    x'\\ 
+                                    y'\\ 
+                                    \end{bmatrix} 
+                                    \]
+                                </p>
+                                <p>
+                                    For each corresponding pair of source and target coordinates, we make rows according to the manipulated form above, and stack them to obtain an overconstrained least-squares problem. We simply solve this for the variables, and construct \(H\) accordingly.
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Image Warping</h3>
+                                    <p>
+                                        We can now warp and mosaic images using a series of homographies. For the first part of this project, I keep this relatively simple. I begin by warping each image to the plane of a reference image. I use these warps to create an output array that can house all images, and keep track of a global origin for our reference image. I place each image in its own output array and create masks using distance transforms. I then iterate through the images, performing multi-resolution blending with Laplacian and Gaussian stacks. I keep track of a mosaic mask that allows for more complex blending, though it does sometimes result in blurred image outlines.
+                                    </p>
+                                    <p>
+                                        Here is an example of how these intermediate warps and masks may look like for a set of images:
+                                    </p>
+                                        <div class="img_container"
+                                        style="width: 100%; height: auto; margin: 0 auto">
+                                            <div class="imgs">
+                                                <img src="images/stw.png" style="width: 100%; height: auto;"/>
+                                                <p class='img_label'><em>"shelf_top_w.png"</em></p>
+                                            </div>
+                                            <div class="imgs">
+                                                <img src="images/stwm.png" style="width: 100%; height: auto;"/>
+                                                <p class='img_label'><em>"shelf_top_w_mask.png"</em></p>
+                                            </div>
+                                            <div class="imgs">
+                                                <img src="images/smw.png" style="width: 100%; height: auto;"/>
+                                                <p class='img_label'><em>"shelf_ref.png"</em></p>
+                                            </div>
+                                            <div class="imgs">
+                                                <img src="images/smwm.png" style="width: 100%; height: auto;"/>
+                                                <p class='img_label'><em>"shelf_ref_mask.png"</em></p>
+                                            </div>
+                                            <div class="imgs">
+                                                <img src="images/sbw.png" style="width: 100%; height: auto;"/>
+                                                <p class='img_label'><em>"shelf_bottom_w.png"</em></p>
+                                            </div>
+                                            <div class="imgs">
+                                                <img src="images/sbwm.png" style="width: 100%; height: auto;"/>
+                                                <p class='img_label'><em>"shelf_bottom_w_mask.png"</em></p>
+                                            </div>
+                                        </div>
+                                        </div>
+                                    <p>
+                                        Below are the mosaics for each set of images. Edges and blurry artifacts are visible in some cases due to differences in lighting, human error, and the mosaic mask.
+                                    </p>
+                                    <div class="img_container"
+                                    style="width: 75%; height: auto; margin: 0 auto">
+                                        <div class="imgs">
+                                            <img src="images/himal_mosaic.png" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>"himal_mosaic.png"</em></p>
+                                        </div>
+                                    </div>
+                                    <div class="img_container"
+                                    style="width: 75%; height: auto; margin: 0 auto">
+                                        <div class="imgs">
+                                            <img src="images/soda_mosaic.png" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>"hearst_ave_mosaic.png"</em></p>
+                                        </div>
+                                    </div>
+                                    <div class="img_container"
+                                    style="width: 25%; height: auto; margin: 0 auto">
+                                        <div class="imgs">
+                                            <img src="images/shelf_mosaic copy.png" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>"shelf_mosaic.png"</em></p>
+                                        </div>
+                                    </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Image Rectification</h3>
+                                    <p>
+                                        Lastly, we can perform image rectification. This involves selecting correspondences that depict a region we know is a rectangle. We can then warp the image with some appropriately set target correspondences to look at the rectangle straight on. Here are some results:
+                                    </p>
+                                    <div class="img_container"
+                                    style="width: 75%; height: auto; margin: 0 auto">
+                                        <div class="imgs">
+                                            <img src="images/tennis.jpg" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>"tennis.jpg"</em></p>
+                                        </div>
+                                        <div class="imgs">
+                                            <img src="images/tennis_rectified.jpg" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>"tennis_rectified.jpg"</em></p>
+                                        </div>
+                                    </div>
+                                    <div class="img_container"
+                                    style="width: 75%; height: auto; margin: 0 auto">
+                                        <div class="imgs">
+                                            <img src="images/einstein.jpg" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>"einstein_table.jpg"</em></p>
+                                        </div>
+                                        <div class="imgs">
+                                            <img src="images/einstein_rectified.jpg" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>"einstein_table_rectified.jpg"</em></p>
+                                        </div>
+                                    </div>
+                                    <div class="img_container"
+                                    style="width: 75%; height: auto; margin: 0 auto">
+                                        <div class="imgs">
+                                            <img src="images/nd.jpg" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>"notre_dame.jpg"</em></p>
+                                        </div>
+                                        <div class="imgs">
+                                            <img src="images/nd_rectified.png" style="width: 100%; height: auto;"/>
+                                            <p class='img_label'><em>"notre_dame_rectified.jpg"</em></p>
+                                        </div>
+                                    </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+</body>
+</html>
