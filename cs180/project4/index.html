@@ -51,22 +51,7 @@
                         <tr>
                             <td style="padding:15px;width:100%;vertical-align:middle">
                                 <h4>Taking Images</h3>
-                                <p>Below are the sets of images that I will use to demonstrate basic image mosaicing. Please note that I did not have the time to collect as many images as I would have liked for Part A, so some images ("himal.png" and rectification images) were sourced online. </p>
-                                <div class="img_container"
-                                style="width: 75%; height: auto; margin: 0 auto">
-                                    <div class="imgs">
-                                        <img src="images/himal_1.jpg" style="width: 100%; height: auto;"/>
-                                        <p class='img_label'><em>"himal_left.png"</em></p>
-                                    </div>
-                                    <div class="imgs">
-                                        <img src="images/himal_ref.jpg" style="width: 100%; height: auto;"/>
-                                        <p class='img_label'><em>"himal_ref.png"</em></p>
-                                    </div>
-                                    <div class="imgs">
-                                        <img src="images/himal_2.jpg" style="width: 100%; height: auto;"/>
-                                        <p class='img_label'><em>"himal_right.png"</em></p>
-                                    </div>
-                                </div>
+                                <p>Below are the sets of images that I will use to demonstrate basic image mosaicing.</p>
                                 <div class="img_container"
                                 style="width: 75%; height: auto; margin: 0 auto">
                                     <div class="imgs">
@@ -75,7 +60,7 @@
                                     </div>
                                     <div class="imgs">
                                         <img src="images/soda2.png" style="width: 100%; height: auto;"/>
-                                        <p class='img_label'><em>"hearst_ave_ref.png"</em></p>
+                                        <p class='img_label'><em>"hearst_ave_mid.png"</em></p>
                                     </div>
                                     <div class="imgs">
                                         <img src="images/soda3.png" style="width: 100%; height: auto;"/>
@@ -85,12 +70,28 @@
                                 <div class="img_container"
                                 style="width: 75%; height: auto; margin: 0 auto">
                                     <div class="imgs">
+                                        <img src="images/d_willard_2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"willard_left.png"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/d_willard_3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"willard_mid.png"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/d_willard_1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"willard_right.png"</em></p>
+                                    </div>
+                                </div>
+
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
                                         <img src="images/shelf1.png" style="width: 100%; height: auto;"/>
                                         <p class='img_label'><em>"shelf_top.png"</em></p>
                                     </div>
                                     <div class="imgs">
                                         <img src="images/shelf2.png" style="width: 100%; height: auto;"/>
-                                        <p class='img_label'><em>"shelf_ref.png"</em></p>
+                                        <p class='img_label'><em>"shelf_mid.png"</em></p>
                                     </div>
                                     <div class="imgs">
                                         <img src="images/shelf3.png" style="width: 100%; height: auto;"/>
@@ -107,17 +108,17 @@
                             <td style="padding:15px;width:100%;vertical-align:middle">
                                 <h4>Recovering Homographies</h3>
                                 <p>
-                                    A homography is a transformation that projects points in one plane onto corresponding points in another plane. In order to apply this, we must first define correspondences between images. Here are some examples of what this may look like:
+                                    A homography is a transformation that projects points in one plane onto corresponding points in another plane. In order to apply this, we must first define correspondences between images. Here are some examples of what this may look like (auto-selected points from part B):
                                 </p>
                                 <div class="img_container"
                                 style="width: 75%; height: auto; margin: 0 auto">
                                     <div class="imgs">
-                                        <img src="images/him_corr_1.png" style="width: 100%; height: auto;"/>
+                                        <img src="images/himal_corr.png" style="width: 100%; height: auto;"/>
                                         <p class='img_label'><em>"himal" correspondences</em></p>
                                     </div>
                                     <div class="imgs">
-                                        <img src="images/hearst_corr.png" style="width: 100%; height: auto;"/>
-                                        <p class='img_label'><em>"hearst_ave" correspondences</em></p>
+                                        <img src="images/hlands_corr.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"hlands" correspondences</em></p>
                                     </div>
                                 </div>
                                 <p>
@@ -179,7 +180,7 @@
                             <td style="padding:15px;width:100%;vertical-align:middle">
                                 <h4>Image Warping</h3>
                                     <p>
-                                        We can now warp and mosaic images using a series of homographies. For the first part of this project, I keep this relatively simple. I begin by warping each image to the plane of a reference image. I use these warps to create an output array that can house all images, and keep track of a global origin for our reference image. I place each image in its own output array and create masks using distance transforms. I then iterate through the images, performing multi-resolution blending with Laplacian and Gaussian stacks. I keep track of a mosaic mask that allows for more complex blending, though it does sometimes result in blurred image outlines.
+                                        We can now warp and mosaic images using a series of homographies. I begin by warping each image to the plane of a reference image. I use these warps to create an output array that can house all images, and keep track of a global origin for our reference image. I place each image in its own output array and create masks using distance transforms. I then iterate through the images, performing multi-resolution blending with Laplacian and Gaussian stacks. I keep track of a mosaic mask that allows for more complex blending, though it does sometimes result in blurred image outlines.
                                     </p>
                                     <p>
                                         Here is an example of how these intermediate warps and masks may look like for a set of images:
@@ -213,9 +214,9 @@
                                         </div>
                                         </div>
                                     <p>
-                                        Below are the mosaics for each set of images. Edges and blurry artifacts are visible in some cases due to differences in lighting, human error, and the mosaic mask.
+                                        I will display the mosaics using manual correspondence selection alongside their automatic counterparts in Part B.
                                     </p>
-                                    <div class="img_container"
+                                    <!-- <div class="img_container"
                                     style="width: 75%; height: auto; margin: 0 auto">
                                         <div class="imgs">
                                             <img src="images/himal_mosaic.png" style="width: 100%; height: auto;"/>
@@ -235,7 +236,7 @@
                                             <img src="images/shelf_mosaic copy.png" style="width: 100%; height: auto;"/>
                                             <p class='img_label'><em>"shelf_mosaic.png"</em></p>
                                         </div>
-                                    </div>
+                                    </div> -->
                             </td>
                         </tr>
                     </tbody>
@@ -293,5 +294,270 @@
                         </tr>
                     </tbody>
                 </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3>Part B: Image Warping and Mosaicing</h3>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Introduction</h3>
+                                    <p>
+                                        In the second part of this project, we create a system for automatically stitching images into mosaics. We closely follow the <a href="https://ieeexplore.ieee.org/document/1467310">MOPS</a> paper by Brown et al. I will explain each step of automatic correspondence selection, using a pair of images from the <i>"hearst_ave"</i> set as an example.
+                                    </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Harris Corner Detection</h3>
+                                <p>
+                                    When searching for correspondence points between two images, we require a number of interest points to begin with. For our purposes, we a method from the skimage library to detect Harris corners in our image.  We apply a threshold on these corner strengths to obtain a reasonable number of starting interest points (set \(I\)). I also extract Harris corners on multiple scales using the Gaussian image pyramid.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/harris_1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>|\(I_1\)| \(= 3,646\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/harris_2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>|\(I_2\)|\(= 3,665\)</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Adaptive Non-Maximal Suppression</h3>
+                                <p>
+                                    We want the corners to be distributed relatively evenly throughout our image for robust homographies. To achieve this, we suppress interest points based on their proximity to another interest point with a stronger corner strength. We can store the radius \(r\) around each interest point within which it will not be suppressed. Then, we pick \(n\) points with the largest radii as our interest points.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/anms_1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>|\(I_1\)| \(= 750\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/anms_2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>|\(I_2\)| \(= 750\)</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Extracting Feature Descriptors</h3>
+                                <p>
+                                    Next, we want to extract features using these interest points. To do so, we extract \(40\) x \(40\) patches centered at each interest point. We scale this down by a factor of \(5\) with anti-aliasing to obtain \(8\) x \(8\) patches. This reduces computational load on our analysis in feature space.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/patches_1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"hearst_ave_left.png" patch boundaries</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/patches_2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"hearst_ave_mid.png" patch boundaries</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/patchd_1.png" style="width: 100%; height: auto;"/>
+                                        <p
+                                        class='img_label'><em>"hearst_ave_left.png" patches</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/patchd2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"hearst_ave_mid.png" patches</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Feature Space Outlier Rejection</h3>
+                                <p>
+                                    Here, we use the extracted patches to determine points that are likely to be true correspondences. To do this, I create a k-d tree for each set of patches. Let's call the patch sets \(p1\) and \(p2\), and their trees \(t1\) and \(t2\). For each patch in \(p1\), I compute the ratio between the patch's distances to it's first and second nearest neighbors in \(p2\). If this ratio is below a threshold this indicates that the first nearest neighbor is significant, so I store it. I do the same thing for patches in \(p2\). I then do an extra step of processing, only keeping interest points that are mutual nearest neighbors. This process as a whole is powerful, as it removes candidate interest points that are not strongly shared between images.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/fsol1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>|\(I_1\)| \(= 67\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/fsol2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>|\(I_2\)| \(= 67\)</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>RANSAC and Homography Estimation</h3>
+                                <p>
+                                    Finally, we arrive Random Sample Consensus, or RANSAC. In this final step, we pick four random pairs of correspondences from \(I_1\) and \(I_2\), and use them recover a homography matrix \(H\). We then apply this transformation to all of the points in \(I_1\), and check their distances \(d_i\) from the "true" points in \(I_2\). We define some threshold \(\epsilon\), such that each point \(i\) in \(I_1\) with \(d_i < \epsilon \) is considered an inlier. We repeat this process for a few thousand iterations, storing the largest set of inliers points for \(I_1\) and \(I_2\). These points are final correspondences that we use to compute a perspective warp between these images.
+                                    <p>
+                                        One thing to note is that my RANSAC implementation typically keeps a majority of interest points from feature space outlier rejection. I believe this is because of the mutual matching mechanism I implemented in the previous step.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/scor.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>|\(I\)| \(= 66\)</em></p>
+                                    </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Automated Warping Results</h3>
+                                <p>
+                                    Below are the mosaics for each set of images with manual vs. automatic keypoint selection. Artifacts are due to differences in lighting and the nature of my multi-resolution blending implementation; the actual alignments are good. It is difficult to see a strong improvement between the first set of images, but it is quite clear for the other two.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/soda_mosaic.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"hearst_ave_mosaic_manual.png"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/soda_small_mosaic_auto.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"hearst_ave_mosaic_auto.png"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/willard_mosaic.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>"willard_mosaic_manual.png"</em></p>
+                                </div>
+                                    <div class="imgs">
+                                        <img src="images/willard_small_mosaic_auto.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"willard_mosaic_auto.png"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/shelf_mosaic (1).png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>"shelf_mosaic_manual.png"</em></p>
+                                </div>
+                                    <div class="imgs">
+                                        <img src="images/shelf_mosaic_auto (2).png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"shelf_mosaic_auto.png"</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Bells and Whistles: Panorama Recognition</h3>
+                                <p>
+                                This process did not feel "automatic" enough for me, so I wanted to implement basic panorama recognition. I wrote a function that takes in a list of image names, and for each pair generates robust correspondences as outlined above. If a pair had ANY robust correspondences at all, I add their file names as nodes in a graph, and connect them with an edge. After processing all images, I extract connected components and identify the central image as the one with the highest degree. The list of image names in each connected component and the central image are then used to create the appropriate mosaics.
+                                </p>
+                                <p>
+                                    I will show a demo of this algorithm. I use sliced up images I found online, along with a few smiling gentlemen mixed in:
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/bag.png" style="width: 100%; height: auto; border: none; box-shadow: none;"/>
+                                    </div>
+                                </div>
+                                <p>
+                                    Here is the resulting graph. The positions of the nodes are arbitrary.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/g.png" style="width: 100%; height: auto;"/>
+                                    </div>
+                                </div>
+                                <p>Here are the resulting images. They resemble the original images almost perfectly.</p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/himal_MID_mosaic_auto.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"himal_mosaic.png"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/athens_MID_mosaic_auto.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"athens_mosaic.png"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/hlands_MID_mosaic_auto.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"hlands_mosaic.png"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 40%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/aurora_MID_mosaic_auto.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"aurora_mosaic.png"</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4>Reflections</h3>
+                                <p>
+                                    This project has given me a much deeper appreciation of fundamental algorithms that we often take for granted. My favorite part of this project has been implementing feature space outlier rejection and RANSAC due to their incredible efficacy in retaining robust interest points. I also enjoyed exploring how these algorithms can be used to easily to group images together. That said, this has been the most personally rewarding project so far in the course.
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+         </table>
 </body>
 </html>
