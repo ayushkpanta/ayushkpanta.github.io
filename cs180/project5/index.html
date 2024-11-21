@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>CS 180 Project 5</title>
+    <meta name="author" content="Ayush Panta">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="images/partA/favicon/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="images/partA/logo (1).ico" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <table style="width:100%;max-width:900px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+        <tbody>
+            <tr style="padding:0px">
+                <td style="padding:50px">
+                    <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                        <tbody>
+                            <tr>
+                                <td style="padding:15px;width:100%;vertical-align:middle">
+                                    <h2>CS 180: Fun with Diffusion Models</h2>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                        <tbody>
+                            <tr>
+                                <td style="padding:15px;width:100%;vertical-align:middle">
+                                    <div>
+                                        <h3>Table of Contents</h3>
+                                        <ul style="list-style-type: none; padding-left: 0px;">
+                                            <li><a href="#partA">Part A: The Power of Diffusion Models</a></li>
+                                            <ul>
+                                                <li><a href="#samplingFromModel">Sampling from the Model</a></li>
+                                                <li><a href="#forwardProcess">Implementing the Forward Process</a></li>
+                                                <li><a href="#gaussDenoise">Classical Denoising</a></li>
+                                                <li><a href="#oneStop">One Step Denoising</a></li>
+                                                <li><a href="#iterativeDenoise">Iterative Denoising</a></li>
+                                                <li><a href="#diffusionModelSampling">Diffusion Model Sampling</a></li>
+                                                <li><a href="#classifierFree">Classifier Free Guidance</a></li>
+                                                <li><a href="#I2ITrans">Image to Image Translation</a></li>
+                                                <li><a href="#drawnweb">Editing Hand-Drawn and Web Images</a></li>
+                                                <li><a href="#inpainting">Inpainting</a></li>
+                                                <li><a href="#textCond">Text-Conditioned Image-to-Image Translation</a></li>
+                                                <li><a href="#visAnagram">Visual Anagrams</a></li>
+                                                <li><a href="#hybrid">Hybrid Images</a></li>
+                                                <li><a href="#mascot">Bells and Whistles: Course Mascot</a></li>
+                                            </ul>
+                                            <li><a href="#partB">Part B: Diffusion Models from Scratch</a></li>
+                                            <ul>
+                                                <li><a href="#basicunet">Implementing a Basic UNet</a></li>
+                                                <li><a href="#simpledenoise">Training a Simple Denoiser</a></li>
+                                                <li><a href="#outdist">Out-of-Distribution Testing</a></li>
+                                                <li><a href="#addTime">Adding Time-Conditioning to UNet</a></li>
+                                                <li><a href="#addClass">Adding Class-Conditioning to UNet</a></li>
+                                            </ul>
+                                        </ul>
+                                    </div>
+                                    
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3 id="partA">Part A: The Power of Diffusion Models</h3>
+                                <p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="samplingFromModel">Sampling from the Model</h4>
+                                <p>
+                                    Below are some examples of images sampled with the <a href="https://huggingface.co/docs/diffusers/api/pipelines/deepfloyd_if">DeepFloyd IF </a>diffusion model using  \(5, 20,\)  and  \(100\)  inference steps. These results were obtained with  \(seed = 2511\). A greater number of inference steps naturally results in a higher quality image.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/snowy5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(T = 5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/man5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(T = 5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/ship5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(T = 5\)</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/snowy_village_s20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(T = 20\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/hatman_s20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(T = 20\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/rocket_s20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(T = 20\)</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/snowy100.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em> \( T = 100\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/man100.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( T = 100 \)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/rocket100.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( T = 100 \)</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="forwardProcess"> Implementing the Forward Process</h4>
+                                <p>
+                                    The forward process of diffusion involves adding noise to a clean image. That is, given a clean image \(x_0\), we want to get a noised image \(x_t\). We can achieve this by computing \(x_t = \sqrt{\bar{\alpha}_t} x_0 + \sqrt{1- \bar{\alpha}_t} \epsilon \), where \(\epsilon \sim N(0, 1)\) and \(\bar{\alpha}_t\) is a cumulative product hyperparameter. Below are images of the Campanile with noise added at various levels.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_clean.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 0\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_t250.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 250\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_t500.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 500\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_t750.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 750\)</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="gaussDenoise"> Classical Denoising</h4>
+                                <p>
+                                    A basic approach for denoising is simply applyinmg a Gaussian blur. Below are denoised results for the noised image above using a Gaussian blur with \(ksize = 5\) and \(\sigma = 1\).
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_t250.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 250\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_t500.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 500\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_t750.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 750\)</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_250g.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 250\), Gaussian Blur Denoised</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_500g.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 500\), Gaussian Blur Denoised</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_750g.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 750\), Gaussian Blur Denoised</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="oneStop"> One Step Denoising</h4>
+                                <p>
+                                    A more effective approach for denoising is through using a pretrained diffusion model. In this implementation, we use a UNet to estimate the noise in a noised image \(x_t\), then removing this noise to obtain \(x_0\). This is done using an inverse of the equation I provided above. Below are examples of denoising using this method.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_t250.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 250\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_t500.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 500\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_t750.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 750\)</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_250dn.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 250\), One-Step Denoised</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_500dn.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 500\), One-Step Denoised</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_750dn.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\( t = 750\), One-Step Denoised</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- We simply compute \(x_{t'} = \frac{\sqrt{\bar{\alpha}_{t'}}\beta_t}{1 - \bar{\alpha}_t}x_0 + \frac{\sqrt{\alpha_t}(1 - \bar{\alpha}_{t'})}{1 - \bar{\alpha}_t}x_t + v_\sigma\) -->
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="iterativeDenoise"> Iterative Denoising</h4>
+                                <p>
+                                    The true strength of diffusion models lie in iterative denoising. We can efficiently simulate running \(1000\) timesteps by denoisng at a reduced set of strided timesteps. For each strided timestep \(t\), we have the next timestep \(t'\), where the latter corresponds to a less noisy image. I leave out the computation for sake of aesthetics, but it's similar to a linear interpolation between signal and noise. Below are the results from this approach, as well as results from previous approaches.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_iterdn_690.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(t = 690\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_iterdn_540.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(t = 540\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_iterdn_390.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(t = 390\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_iterdn_240.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(t = 240\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_iterdn_90.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(t = 90\)</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/partA/campanile_clean.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Original</em></p>
+                                </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_iterdn_0.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Iteratively Denoised</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_iterdn_os.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>One-Step Denoised</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_iterdn_gdn.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Gaussian Blur Denoised</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="diffusionModelSampling"> Diffusion Model Sampling</h4>
+                                <p>
+                                    Here are some results obtained by starting the iterative denoising process from pure noise. The generated images are fair, but not of particularly great quality.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/sample_1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sample 1</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/sample_2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sample 2</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/sample_3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sample 3</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/sample_4.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sample 4</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/sample_5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sample 5</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="classifierFree"> Classifier Free Guidance</h4>
+                                <p>
+                                    We can improve upon the previous diffusion results by using <a href = 'https://arxiv.org/abs/2207.12598'>Classifier-Free Guidance</a>. Whereas we previously only used a noise estimate \(\epsilon_c\) conditioned on a general text prompt, we now also use a noise estimate \(\epsilon_u\) "conditioned" on a null prompt. The latter is actually our unconditional noise estimate. We can compute a noise estimate \(\epsilon = \epsilon_u + \gamma (\epsilon_c - \epsilon_u\)), where \(\gamma\) is a CFG scale parameter. Below are some generated images using CFG.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/cfg_1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sample 1</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/cfg_2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sample 2</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/cfg_3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sample 3</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/cfg_4.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sample 4</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/cfg_5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Sample 5</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="I2ITrans"> Image-to-Image Translation</h4>
+                                <p>
+                                    Here are examples of image translation following the  <a href='https://sde-image-editing.github.io/'>SDEdit</a> algorithm.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_sde1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_sde3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_sde5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_sde7.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 7\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_sde10.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 10\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_sde20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 20\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campanile_clean.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"campanile.png"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/globe_edit_1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/globe_edit_3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/globe_edit_5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/globe_edit_7.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 7\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/globe_edit_10.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 10\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/globe_edit_20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 20\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/globe_edit_b.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"globe.png"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/stupa_edit_1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/stupa_edit_3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/stupa_edit_5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/stupa_edit_7.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 7\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/stupa_edit_10.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 10\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/stupa_edit_20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 20\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/stupa_edit_b.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"stupa.png"</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="drawnweb">Editing Hand-Drawn and Web Images</h4>
+                                <p>
+                                    Here are similar results for unrealistic images.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/luffy_1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/luffy_3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/luffy_5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/luffy_7.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 7\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/luffy_10.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 10\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/luffy_20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 20\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/luffy.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"luffy.png"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/trees_s1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/trees_s3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/trees_s5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/trees_s7.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 7\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/trees_s10.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 10\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/trees_s20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 20\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/trees.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"trees.png"</em></p>
+                                    </div>
+                                </div>
+
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/village_1.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/village_3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/village_5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/village_7.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 7\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/village_10.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 10\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/village_20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 20\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/village.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"village.png"</em></p>
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="inpainting"> Inpainting</h4>
+                                <p>
+                                    Here are inpainting results with custom masks.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/partA/campanile_clean.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_mask.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/camp_inpainted.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/partA/squirrel_og.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/squirrel_mask.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/squirrel_inpainted.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/partA/everest_base.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/everest_mask.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/everest_clean.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="textCond"> Text-Conditioned Image-to-Image Translation</h4>
+                                <p>
+                                    We can further guide this process using prompts.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/partA/tcamp_1.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/tcamp_3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/tcamp_5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/tcamp_7.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/tcamp_10.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 7\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/tcamp_20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 10\)</em></p>
+                                    </div>
+                                    <!-- <div class="imgs">
+                                        <img src="images/partA/campanile_clean.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 20\)</em></p>
+                                    </div> -->
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/partA/teach_1.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/teach_3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/teach_5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/teach_7.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/teach_10.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = teach7\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/teach_20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 10\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/teach.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 20\)</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/partA/campus_1.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campus_3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 1\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campus_5.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 3\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campus_7.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 5\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campus_10.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = teach7\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campus_20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 10\)</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/campus.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>\(i_{start} = 20\)</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="visAnagram"> Visual Anagrams</h4>
+                                <p>
+                                    By manipulating noise, we can create visual anagrams.
+                                </p>
+                                <div class="img_container"
+                                style="width: 50%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/oldman_f3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"an oil painting of an old man"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/fire_f3.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"an oil painting of people around a campfire"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 50%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/chekhov.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"a portrait of Anton Chekhov"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/turgenev.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"a portrait of Ivan Turgenev"</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 50%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/kitten.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"an oil painting of a kitten, dark background"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/tiger.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"an oil painting of a tiger, dark background"</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="hybrid"> Hybrid Images</h4>
+                                <p>
+                                    We can similarly create hybrid images.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/skullwater_hybrid.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"a lithograph of a skull" + "a lithograph of waterfalls"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/treeleaf.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"a lithograph of a tree" + "a lithograph of a leaf"</em></p>
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partA/foxrose2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>"a lithograph of a fox" + "a lithograph of a rose"</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="mascot"> Bells and Whistles: Course Mascot</h4>
+                                <p>
+                                    I used my prompt engineering skills and iterative CFG denoising from pure noise to create a basic mascot for the course.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                        <img src="images/partA/logo.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Oski Jr.</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h3 id="partB">Part B: Diffusion Models from Scratch</h3>
+                                <p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="basicunet">Implementing a Basic UNet</h4>
+                                <p>
+                                    We implement this architecture.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/partB/basicArc.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Bare Bones UNet Architecture</em></p>
+                                </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="simpledenoise">Training a Simple Denoiser</h4>
+                                <p> Here is a visualization of the noising process.                       
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                    <img src="images/partB/noising.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Noising Process Examples</em></p>
+                                    </div>
+                                </div>
+                                <p> Here are some examples throughout training the denoiser, along with the loss curve.</p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                    <img src="images/partB/test_ims.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Original Images</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                    <img src="images/partB/e1.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Post-Epoch 1 Predictions</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                    <img src="images/partB/t_e5.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Post-Epoch 5 Predictions</em></p>
+                                    </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                    <img src="images/partB/onestep_loss.png" style="width: 50%; height: auto;"/>
+                                    <p class='img_label'><em>Loss Curve</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="outdist">Out-of-Distribution Testing</h4>
+                                <p>
+                                    Here is how our denoiser performs for unfamiliar noise levels.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                    <img src="images/partB/outdist.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Testing "Unfamiliar" Noise Levels</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="addTime">Adding Time-Conditioning to UNet</h4>
+                                <p>
+                                    We now implement this more involved architecture.
+                                </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                <div class="imgs">
+                                    <img src="images/partB/timeArc.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>UNet Architecture with Time Injections</em></p>
+                                </div>
+                                </div>
+                            <p> Below are my sampling results and loss curve. </p>
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                    <img src="images/partB/time_e5.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Post-Epoch 5 Predictions</em></p>
+                                    
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partB/time_e20.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Post-Epoch 20 Predictions</em></p>
+                                        </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 50%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                    <img src="images/partB/time_loss.png" style="width: 75%; height: auto;"/>
+                                    <p class='img_label'><em>Loss Curve</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:15px;width:100%;vertical-align:middle">
+                                <h4 id="addClass">Adding Class-Conditioning to UNet</h4>
+                                <p>
+                                    Lastly, we add class conditioning similarly to how we added time conditioning.Below are my sampling results and loss curve.                                </p>
+
+                                <div class="img_container"
+                                style="width: 75%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                    <img src="images/partB/class_e5.png" style="width: 100%; height: auto;"/>
+                                    <p class='img_label'><em>Post-Epoch 5 Predictions</em></p>
+                                    
+                                    </div>
+                                    <div class="imgs">
+                                        <img src="images/partB/class_e20_2.png" style="width: 100%; height: auto;"/>
+                                        <p class='img_label'><em>Post-Epoch 20 Predictions</em></p>
+                                        </div>
+                                </div>
+                                <div class="img_container"
+                                style="width: 50%; height: auto; margin: 0 auto">
+                                    <div class="imgs">
+                                    <img src="images/partB/class_loss_2.png" style="width: 75%; height: auto;"/>
+                                    <p class='img_label'><em>Loss Curve</em></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+</body>
+</html>
